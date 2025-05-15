@@ -3,8 +3,6 @@ import { Link } from "react-router";
 import {
     X,
     LayoutDashboard,
-    CreditCard,
-    PieChart,
     User,
     Settings,
     MessageSquare,

@@ -21,7 +21,7 @@ const PendingPurchases = () => {
         })
             .then((res) => res.json())
             .then((data) => {
-                const pending = data.all.filter((item) => item.result === "0");
+                const pending = data.all.filter((item: any) => item.result === "0");
                 setPurchases(pending);
             })
             .catch((error) => {
@@ -48,7 +48,7 @@ const PendingPurchases = () => {
                 <div className="text-gray-500">No pending purchases found.</div>
             ) : (
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                    {purchases.map((purchase) => (
+                    {purchases.map((purchase: any) => (
                         <div
                             key={purchase.id}
                             className="border rounded-xl p-4 shadow hover:shadow-lg cursor-pointer transition"

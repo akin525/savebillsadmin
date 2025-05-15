@@ -4,9 +4,20 @@ import { getAuthToken } from "@/utils/auth.tsx";
 import Sidebar from "@/components/Sidebar.tsx";
 import DashboardHeader from "@/components/DashboardHeader.tsx";
 
+type Bill = {
+    id: string;
+    username: string;
+    plan?: string;
+    amount: number;
+    phone: string;
+    refid: string;
+    date: string;
+    result: string;
+};
+
 const TransactionDetails = () => {
-    const { id } = useParams();
-    const [bill, setBill] = useState(null);
+    const { id } = useParams<{ id: string }>();
+    const [bill, setBill] = useState<Bill | null>(null);
     const [loading, setLoading] = useState(true);
     const token = getAuthToken();
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -26,13 +37,13 @@ const TransactionDetails = () => {
                 setBill(data.bill);
                 setLoading(false);
             })
-            .catch((err) => {
-                console.error("Error loading bill:", err);
+            .catch((_err) => {
+                console.error("Error loading bill");
                 setLoading(false);
             });
     }, [id]);
 
-    const handleAction = (action) => {
+    const handleAction = (action: string) => {
         fetch(`${baseUrl}pending/${id}/${action}`, {
             method: "POST",
             headers: {
@@ -42,7 +53,7 @@ const TransactionDetails = () => {
         })
             .then((res) => res.json())
             .then((data) => alert(`${action} completed: ${JSON.stringify(data)}`))
-            .catch((err) => alert(`Error performing ${action}`));
+            .catch((_err) => alert(`Error performing ${action}`));
     };
 
     if (loading) return <p className="text-center text-white mt-10">Loading...</p>;

@@ -2,14 +2,28 @@ import { useState } from "react";
 import Sidebar from "@/components/Sidebar.tsx";
 import DashboardHeader from "@/components/DashboardHeader.tsx";
 import { getAuthToken } from "@/utils/auth.tsx";
+import { toast } from "react-toastify";
+
+// Define type for bill object
+interface Bill {
+    id: string;
+    username: string;
+    plan?: string;
+    amount: number;
+    phone: string;
+    refid: string;
+    date: string;
+    result: string;
+    server_res?: string;
+}
 
 const SearchTransaction = () => {
     const [refid, setRefid] = useState("");
-    const [bill, setBill] = useState(null);
-    const [message, setMessage] = useState(null);
+    const [bill, setBill] = useState<Bill | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [actionResponse, setActionResponse] = useState(null);
+    const [actionResponse, setActionResponse] = useState<string | null>(null);
 
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
     const token = getAuthToken();
@@ -33,13 +47,14 @@ const SearchTransaction = () => {
             setBill(data.bill);
             setMessage(data.samson || null);
         } catch {
-            setMessage("Error fetching transaction.");
+            toast.error("Network error");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAction = async (action) => {
+    const handleAction = async (action: string) => {
+        if (!bill) return;
         try {
             setLoading(true);
             setActionResponse(null);
@@ -162,9 +177,7 @@ const SearchTransaction = () => {
 
                             {/* Right - Actions & Response */}
                             <div className="bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-700 flex flex-col justify-between">
-                                <h2 className="text-2xl font-semibold border-b border-gray-700 pb-3 mb-6">
-                                    Actions
-                                </h2>
+                                <h2 className="text-2xl font-semibold border-b border-gray-700 pb-3 mb-6">Actions</h2>
 
                                 {bill.result === "0" ? (
                                     <>
