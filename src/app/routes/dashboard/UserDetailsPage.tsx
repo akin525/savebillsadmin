@@ -3,61 +3,74 @@ import { useParams } from "react-router";
 import { getAuthToken } from "@/utils/auth";
 import Sidebar from "@/components/Sidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-import { BadgeCheck,  UserCircle } from "lucide-react";
+import { UserCog, ShieldCheck, RefreshCw, CreditCard, Mail, Ban } from "lucide-react";
+import UserManagement from "@/components/ui/UserManagement.tsx";
 
 interface UserProfile {
     id: number;
-    firstname: string;
-    lastname: string;
+    name: string;
+    phone: string;
     username: string;
     email: string;
-    phone: string;
-    balance: string;
-    earning: string;
-    telegram_id: string;
-    bep_address: string;
-    country: string;
-    email_verified: number;
-    telegram_verified: number;
-    ref_code: string;
-    referral: string;
-    status: string;
-    created_at: string;
-}
-
-interface UserStats {
-    profile: UserProfile;
-    bids: number;
-    asks: number;
-    success_bids: number;
-    success_asks: number;
-    sum_bids: number;
-    sum_asks: number;
+    wallet: string;
+    bank: string;
+    bank1: string;
+    account_number: string;
+    account_number1: string;
+    account_name: string;
+    account_name1: string;
+    gender: string;
+    dob: string;
+    apikey: string;
+    address: string;
+    is_verify: string;
+    point: number;
+    cashback: number;
+    reward: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-export default function UserDetailsPage() {
+export default function ManageUserPage() {
     const { id } = useParams();
-    const [userStats, setUserStats] = useState<UserStats | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [userDeposit, setUserDeposit] = useState<number>(0);
+    const [userBill, setUserBill] = useState<number>(0);
+    const [userCharge, setUserCharge] = useState<number>(0);
+    const [safelock, setSafelock] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [allbill, setAllbill] = useState([]);
+    const [alldeposit, setAlldeposit] = useState([]);
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const token = getAuthToken();
-                const res = await fetch(`${baseUrl}user-details/${id}`, {
+                const res = await fetch(`${baseUrl}users`, {
+                    method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },
+                    body: JSON.stringify({ username: id }),
                 });
 
                 if (!res.ok) throw new Error("Failed to fetch user details");
                 const result = await res.json();
-                setUserStats(result?.data);
+
+                setUser(result.userdetail);
+                setAllbill(result.allbill);
+                setAlldeposit(result.alldeposit);
+
+                // Parse and ensure numbers
+                setUserDeposit(Number(result.userdeposit ?? 0));
+                setUserBill(Number(result.userbill ?? 0));
+                setUserCharge(Number(result.usercharge ?? 0));
+                setSafelock(Number(result.safelock ?? 0));
             } catch (err: any) {
                 setError(err.message || "Something went wrong");
             } finally {
@@ -67,8 +80,6 @@ export default function UserDetailsPage() {
 
         fetchUser();
     }, [id]);
-
-    const profile = userStats?.profile;
 
     return (
         <div className="min-h-screen flex bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white">
@@ -83,80 +94,122 @@ export default function UserDetailsPage() {
             <div className="flex-1 flex flex-col overflow-hidden">
                 <DashboardHeader setSidebarOpen={setSidebarOpen} />
 
-                <main className="p-6 space-y-6">
-                    <h1 className="text-3xl font-bold">👤 User Details</h1>
+                <main className="p-8 space-y-8 max-w-7xl mx-auto">
+                    <h1 className="text-4xl font-extrabold tracking-tight flex items-center gap-3">
+                        <UserCog size={36} className="text-cyan-400" />
+                        Manage User
+                    </h1>
 
                     {loading ? (
-                        <p className="text-gray-300">Loading user...</p>
+                        <p className="text-gray-400 text-lg">Loading user details...</p>
                     ) : error ? (
-                        <p className="text-red-500">{error}</p>
-                    ) : profile ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Profile Info Card */}
-                            <div className="bg-gray-900 rounded-2xl p-6 shadow-lg space-y-4 border border-gray-700">
-                                <div className="flex items-center gap-3">
-                                    <UserCircle size={28} />
-                                    <h2 className="text-xl font-semibold">Profile Information</h2>
-                                </div>
-                                <div className="space-y-2 text-sm">
-                                    <p><strong>Full Name:</strong> {profile.firstname} {profile.lastname}</p>
-                                    <p><strong>Username:</strong> @{profile.username}</p>
-                                    <p><strong>Email:</strong> {profile.email}</p>
-                                    <p><strong>Phone:</strong> {profile.phone}</p>
-                                    <p><strong>Country:</strong> {profile.country}</p>
-                                    <p><strong>Referral Code:</strong> {profile.ref_code}</p>
-                                    <p><strong>Referred By:</strong> {profile.referral || "N/A"}</p>
-                                    <p>
-                                        <strong>Status:</strong>{" "}
-                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${profile.status === "active" ? "bg-green-600 text-white" : "bg-red-500 text-white"}`}>
-                                            {profile.status}
-                                        </span>
-                                    </p>
-                                    <p><strong>Joined:</strong> {new Date(profile.created_at).toLocaleString()}</p>
-                                </div>
-                            </div>
+                        <p className="text-red-500 text-lg font-semibold">{error}</p>
+                    ) : user ? (
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+                            {/* User Info */}
+                            <section className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur rounded-3xl p-8 shadow-2xl border border-gray-700 xl:col-span-2 hover:shadow-cyan-500/20 transition">
+                                <header className="flex items-center gap-4 mb-8">
+                                    <UserCog size={32} className="text-cyan-400" />
+                                    <h2 className="text-3xl font-bold">User Information</h2>
+                                </header>
 
-                            {/* Stats Info Card */}
-                            <div className="bg-gray-900 rounded-2xl p-6 shadow-lg space-y-4 border border-gray-700">
-                                <div className="flex items-center gap-3">
-                                    <BadgeCheck size={28} />
-                                    <h2 className="text-xl font-semibold">Account & Statistics</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-base">
+                                    {/* User Info Grid */}
+                                    <UserInfoRow label="Full Name" value={user.name} />
+                                    <UserInfoRow label="Username" value={`@${user.username}`} />
+                                    <UserInfoRow label="Email" value={user.email} />
+                                    <UserInfoRow label="Phone" value={user.phone} />
+                                    <UserInfoRow label="Address" value={user.address} />
+                                    <UserInfoRow label="Gender" value={user.gender} />
+                                    <UserInfoRow label="Date of Birth" value={new Date(user.dob).toLocaleDateString()} />
+                                    <UserInfoRow label="Wallet Balance" value={`₦${user.wallet}`} />
+                                    <UserInfoRow label="Cashback" value={`₦${user.cashback}`} />
+                                    <UserInfoRow label="Reward Points" value={`${user.reward}`} />
+
+                                    <UserInfoRow label="Bank 1" value={user.bank} />
+                                    <UserInfoRow label="Account Name 1" value={user.account_name} />
+                                    <UserInfoRow label="Account Number 1" value={user.account_number} />
+
+                                    <UserInfoRow label="Bank 2" value={user.bank1} />
+                                    <UserInfoRow label="Account Name 2" value={user.account_name1} />
+                                    <UserInfoRow label="Account Number 2" value={user.account_number1} />
+
+                                    <UserInfoRow label="API Key" value={user.apikey} />
+
+                                    <div className="flex items-center gap-3">
+                                        <strong className="text-gray-400">Status:</strong>
+                                        <span
+                                            className={`px-4 py-1 rounded-full text-sm font-semibold ${
+                                                user.is_verify === "true"
+                                                    ? "bg-green-600 text-white"
+                                                    : "bg-red-600 text-white"
+                                            }`}
+                                        >
+                                            {user.is_verify === "true" ? "Verified" : "Unverified"}
+                                        </span>
+                                    </div>
+
+                                    <UserInfoRow label="Created At" value={new Date(user.createdAt).toLocaleDateString()} />
+                                    <UserInfoRow label="Last Updated" value={new Date(user.updatedAt).toLocaleDateString()} />
                                 </div>
-                                <div className="space-y-2 text-sm">
-                                    <p><strong>Balance:</strong> USDT {Number(profile.balance).toLocaleString()}</p>
-                                    <p><strong>Earnings:</strong> USDT {Number(profile.earning).toLocaleString()}</p>
-                                    <p><strong>BEP Address:</strong> {profile.bep_address}</p>
-                                    <p><strong>Telegram ID:</strong> {profile.telegram_id}</p>
-                                    <p>
-                                        <strong>Email Verified:</strong>{" "}
-                                        {profile.email_verified ? (
-                                            <span className="text-green-400">Yes ✅</span>
-                                        ) : (
-                                            <span className="text-red-400">No ❌</span>
-                                        )}
-                                    </p>
-                                    <p>
-                                        <strong>Telegram Verified:</strong>{" "}
-                                        {profile.telegram_verified ? (
-                                            <span className="text-green-400">Yes ✅</span>
-                                        ) : (
-                                            <span className="text-red-400">No ❌</span>
-                                        )}
-                                    </p>
-                                    <p><strong>Total Bids:</strong> {userStats?.bids}</p>
-                                    <p><strong>Successful Bids:</strong> {userStats?.success_bids}</p>
-                                    <p><strong>Sum of Bids:</strong> USDT {userStats?.sum_bids.toLocaleString()}</p>
-                                    <p><strong>Total Asks:</strong> {userStats?.asks}</p>
-                                    <p><strong>Successful Asks:</strong> {userStats?.success_asks}</p>
-                                    <p><strong>Sum of Asks:</strong> USDT {userStats?.sum_asks.toLocaleString()}</p>
+
+                                {/* Financial Summary */}
+                                <section className="mt-10 bg-gray-800/80 rounded-2xl p-6 border border-gray-700">
+                                    <h3 className="text-xl font-semibold mb-5 text-cyan-400">Financial Summary</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <UserInfoRow label="Total Deposit" value={`₦${userDeposit.toLocaleString()}`} />
+                                        <UserInfoRow label="Total Bill" value={`₦${userBill.toLocaleString()}`} />
+                                        <UserInfoRow label="Total Charges" value={`₦${userCharge.toLocaleString()}`} />
+                                        <UserInfoRow label="Safe Lock" value={`₦${safelock.toFixed(2)}`} />
+                                    </div>
+                                </section>
+                            </section>
+
+                            {/* Management Actions */}
+                            <section className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur rounded-3xl p-8 shadow-2xl border border-gray-700 flex flex-col gap-6 hover:shadow-cyan-500/20 transition">
+                                <header className="flex items-center gap-4 mb-6">
+                                    <ShieldCheck size={32} className="text-cyan-400" />
+                                    <h2 className="text-3xl font-bold">Admin Actions</h2>
+                                </header>
+
+                                <div className="flex flex-col gap-4">
+                                    <ActionButton icon={<CreditCard size={24} />} text="Credit User Balance" color="bg-green-600" />
+                                    <ActionButton icon={<CreditCard size={24} />} text="Debit User Balance" color="bg-yellow-600" />
+                                    <ActionButton icon={<RefreshCw size={24} />} text="Generate Account Number" color="bg-blue-600" />
+                                    <ActionButton icon={<Mail size={24} />} text="Send Email" color="bg-indigo-600" />
+                                    <ActionButton icon={<ShieldCheck size={24} />} text="Update User Details" color="bg-gray-600" />
+                                    <ActionButton icon={<Ban size={24} />} text="Change Status" color="bg-red-600" />
                                 </div>
-                            </div>
+                            </section>
                         </div>
                     ) : (
-                        <p className="text-gray-400">User not found.</p>
+                        <p className="text-gray-400 text-lg">User not found.</p>
                     )}
                 </main>
+
+                <UserManagement userdetail={user ?? undefined} allbill={allbill} alldeposit={alldeposit} />
             </div>
         </div>
+    );
+}
+
+function UserInfoRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex justify-between border-b border-gray-700 pb-3 last:border-none hover:bg-gray-800/40 rounded-lg px-3 transition">
+            <span className="font-medium text-gray-400">{label}:</span>
+            <span className="font-bold">{value}</span>
+        </div>
+    );
+}
+
+function ActionButton({ icon, text, color }: { icon: React.ReactNode; text: string; color: string }) {
+    return (
+        <button
+            className={`${color} flex items-center gap-4 justify-center rounded-2xl px-6 py-4 font-semibold transition duration-200 hover:scale-105 active:scale-95 shadow-lg`}
+            type="button"
+        >
+            <span className="text-white">{icon}</span>
+            <span className="text-lg">{text}</span>
+        </button>
     );
 }

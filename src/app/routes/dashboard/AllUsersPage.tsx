@@ -42,7 +42,7 @@ const AllUsers = () => {
         })
             .then((res) => res.json())
             .then((data) => {
-                if (data.success === true) {
+                if (data.success) {
                     setUsers(data.users);
                     setFilteredUsers(data.users);
                 } else {
@@ -80,11 +80,11 @@ const AllUsers = () => {
 
     const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
 
-    if (loading) return <p className="text-center text-white mt-20">Loading users...</p>;
-    if (error) return <p className="text-center text-red-500 mt-20">{error}</p>;
+    if (loading) return <div className="flex items-center justify-center h-screen text-gray-300">Loading users...</div>;
+    if (error) return <div className="flex items-center justify-center h-screen text-red-500">{error}</div>;
 
     return (
-        <div className="min-h-screen flex bg-[#050B1E] text-white">
+        <div className="min-h-screen flex bg-gradient-to-b from-[#050B1E] via-[#0F172A] to-[#050B1E] text-white">
             {sidebarOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
             )}
@@ -93,40 +93,41 @@ const AllUsers = () => {
                 <DashboardHeader setSidebarOpen={setSidebarOpen} />
 
                 <div className="max-w-7xl mx-auto mt-10 p-6 space-y-8">
+                    {/* Header and Search */}
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold">All Users</h2>
-                            <p className="text-gray-400">Manage, search, and filter all registered users.</p>
+                        <div>
+                            <h2 className="text-4xl font-bold">All Users</h2>
+                            <p className="text-gray-400 mt-1">Manage, search, and filter all registered users.</p>
                         </div>
                         <input
                             type="text"
                             placeholder="Search username, name, phone..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="px-4 py-2 rounded-lg bg-[#1E293B] text-white placeholder-gray-400 w-full md:w-72"
+                            className="px-4 py-3 rounded-xl bg-[#1E293B] text-white placeholder-gray-500 w-full md:w-80 focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div
+                        <StatCard
+                            title="Total Users"
+                            value={users.length}
+                            gradient="from-blue-700 to-blue-900"
+                            active={filter === "all"}
                             onClick={() => setFilter("all")}
-                            className={`cursor-pointer bg-gradient-to-br from-blue-700 to-blue-900 p-5 rounded-xl shadow-lg ${filter === "all" ? "ring-2 ring-blue-400" : ""}`}
-                        >
-                            <h4 className="text-sm text-gray-300">Total Users</h4>
-                            <p className="text-3xl font-bold mt-1">{users.length}</p>
-                        </div>
-                        <div
+                        />
+                        <StatCard
+                            title="Total Resellers"
+                            value={users.filter(u => Number(u.wallet) >= 100).length}
+                            gradient="from-green-700 to-green-900"
+                            active={filter === "reseller"}
                             onClick={() => setFilter("reseller")}
-                            className={`cursor-pointer bg-gradient-to-br from-green-700 to-green-900 p-5 rounded-xl shadow-lg ${filter === "reseller" ? "ring-2 ring-green-400" : ""}`}
-                        >
-                            <h4 className="text-sm text-gray-300">Total Resellers</h4>
-                            <p className="text-3xl font-bold mt-1">{users.filter(u => Number(u.wallet) >= 100).length}</p>
-                        </div>
+                        />
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto bg-[#0F172A] rounded-2xl shadow-xl">
+                    <div className="overflow-x-auto bg-[#0F172A] rounded-2xl shadow-2xl">
                         <table className="min-w-full text-sm">
                             <thead>
                             <tr className="text-gray-400 text-left border-b border-gray-600">
@@ -143,7 +144,7 @@ const AllUsers = () => {
                             {paginatedUsers.map((user, index) => (
                                 <tr
                                     key={user.id}
-                                    onClick={() => navigate(`/userdetails/${user.id}`)}
+                                    onClick={() => navigate(`/userdetails/${user.username}`)}
                                     className="border-b border-gray-700 hover:bg-[#162338] cursor-pointer"
                                 >
                                     <td className="py-4 px-4">{(currentPage - 1) * USERS_PER_PAGE + index + 1}</td>
@@ -170,7 +171,7 @@ const AllUsers = () => {
                         <button
                             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
+                            className="px-4 py-2 bg-gray-700 rounded-xl disabled:opacity-50 hover:bg-gray-600"
                         >
                             Previous
                         </button>
@@ -178,7 +179,7 @@ const AllUsers = () => {
                         <button
                             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
+                            className="px-4 py-2 bg-gray-700 rounded-xl disabled:opacity-50 hover:bg-gray-600"
                         >
                             Next
                         </button>
@@ -188,5 +189,16 @@ const AllUsers = () => {
         </div>
     );
 };
+
+// Reusable StatCard component
+const StatCard = ({ title, value, gradient, active, onClick }: { title: string; value: number; gradient: string; active: boolean; onClick: () => void }) => (
+    <div
+        onClick={onClick}
+        className={`cursor-pointer bg-gradient-to-br ${gradient} p-5 rounded-2xl shadow-xl hover:scale-105 transform transition ${active ? "ring-4 ring-opacity-50 ring-white" : ""}`}
+    >
+        <h4 className="text-sm text-gray-300">{title}</h4>
+        <p className="text-4xl font-bold mt-1">{value}</p>
+    </div>
+);
 
 export default AllUsers;
