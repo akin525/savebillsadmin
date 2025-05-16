@@ -1,155 +1,192 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
-import { getAuthToken } from "@/utils/auth";
 import Sidebar from "@/components/Sidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { getAuthToken } from "@/utils/auth";
+import { useNavigate } from "react-router";
 
-interface User {
+type User = {
     id: number;
-    firstname: string;
-    lastname: string;
+    name: string;
+    phone: string;
+    username: string;
     email: string;
-    created_at: string;
-}
+    wallet: string;
+    account_number: string;
+    account_name: string;
+    gender: string;
+    is_verify: string;
+    cashback: number;
+    reward: number;
+    createdAt: string;
+};
 
-interface ApiResponse {
-    data: {
-        data: User[];
-        current_page: number;
-        next_page_url: string | null;
-        prev_page_url: string | null;
-        last_page: number;
-    };
-}
+const USERS_PER_PAGE = 10;
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
-const token = getAuthToken();
-
-export default function AllUsersPage() {
+const AllUsers = () => {
     const [users, setUsers] = useState<User[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pagination, setPagination] = useState<{
-        current_page: number;
-        next_page_url: string | null;
-        prev_page_url: string | null;
-        last_page: number;
-    } | null>(null);
+    const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [filter, setFilter] = useState<"all" | "reseller">("all");
 
-    const fetchUsers = async (page = 1) => {
-        setLoading(true);
-        setError(null);  // Reset the error before making a new request
-        try {
-            const res = await fetch(`${baseUrl}users?page=${page}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!res.ok) throw new Error("Failed to fetch users");
-            const result: ApiResponse = await res.json();
-
-            setUsers(result.data.data);  // Corrected this part to match the API response
-            setPagination({
-                current_page: result.data.current_page,
-                next_page_url: result.data.next_page_url,
-                prev_page_url: result.data.prev_page_url,
-                last_page: result.data.last_page,
-            });
-        } catch (err: any) {
-            setError(err.message || "Something went wrong");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const token = getAuthToken();
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const navigate = useNavigate();
 
     useEffect(() => {
-        fetchUsers(currentPage);
-    }, [currentPage]);
+        fetch(`${baseUrl}alluser`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success === true) {
+                    setUsers(data.users);
+                    setFilteredUsers(data.users);
+                } else {
+                    setError("Failed to load users.");
+                }
+            })
+            .catch(() => setError("Error fetching users."))
+            .finally(() => setLoading(false));
+    }, []);
 
-    const handleNext = () => {
-        if (pagination?.next_page_url) {
-            setCurrentPage((prev) => prev + 1);
+    useEffect(() => {
+        filterAndSearch();
+    }, [users, filter, searchTerm]);
+
+    const filterAndSearch = () => {
+        let updated = [...users];
+        if (filter === "reseller") {
+            updated = updated.filter((user) => Number(user.wallet) >= 100);
         }
+        if (searchTerm.trim() !== "") {
+            updated = updated.filter((user) =>
+                [user.username, user.name, user.phone].some((field) =>
+                    field?.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+            );
+        }
+        setFilteredUsers(updated);
+        setCurrentPage(1);
     };
 
-    const handlePrevious = () => {
-        if (pagination?.prev_page_url && currentPage > 1) {
-            setCurrentPage((prev) => prev - 1);
-        }
-    };
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * USERS_PER_PAGE,
+        currentPage * USERS_PER_PAGE
+    );
+
+    const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+
+    if (loading) return <p className="text-center text-white mt-20">Loading users...</p>;
+    if (error) return <p className="text-center text-red-500 mt-20">{error}</p>;
 
     return (
-        <div className="min-h-screen flex bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white">
+        <div className="min-h-screen flex bg-[#050B1E] text-white">
             {sidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
             )}
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
             <div className="flex-1 flex flex-col overflow-hidden">
                 <DashboardHeader setSidebarOpen={setSidebarOpen} />
 
-                <div className="p-6">
-                    <h1 className="text-3xl font-bold mb-6">All Users</h1>
-
-                    {loading ? (
-                        <div className="text-center mt-10">
-                            <p className="text-gray-300">Loading users...</p>
-                            <div className="mt-4 animate-spin w-8 h-8 border-4 border-t-4 border-blue-500 rounded-full mx-auto"></div>
+                <div className="max-w-7xl mx-auto mt-10 p-6 space-y-8">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                        <div className="space-y-2">
+                            <h2 className="text-3xl font-bold">All Users</h2>
+                            <p className="text-gray-400">Manage, search, and filter all registered users.</p>
                         </div>
-                    ) : error ? (
-                        <div className="text-red-500 text-center">{error}</div>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {users.map((user) => (
-                                    <div
-                                        key={user.id}
-                                        className="bg-gray-800 hover:bg-gray-700 transition p-4 rounded-xl shadow-lg cursor-pointer"
-                                        onClick={() => navigate(`/user-details/${user.id}`)}
-                                    >
-                                        <p className="text-lg font-semibold">
-                                            {user.firstname} {user.lastname}
-                                        </p>
-                                        <p className="text-sm text-gray-400">{user.email}</p>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Joined: {new Date(user.created_at).toLocaleString()}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
+                        <input
+                            type="text"
+                            placeholder="Search username, name, phone..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="px-4 py-2 rounded-lg bg-[#1E293B] text-white placeholder-gray-400 w-full md:w-72"
+                        />
+                    </div>
 
-                            {/* Pagination Controls */}
-                            <div className="flex items-center justify-center mt-10 space-x-4">
-                                <button
-                                    onClick={handlePrevious}
-                                    disabled={!pagination?.prev_page_url}
-                                    className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div
+                            onClick={() => setFilter("all")}
+                            className={`cursor-pointer bg-gradient-to-br from-blue-700 to-blue-900 p-5 rounded-xl shadow-lg ${filter === "all" ? "ring-2 ring-blue-400" : ""}`}
+                        >
+                            <h4 className="text-sm text-gray-300">Total Users</h4>
+                            <p className="text-3xl font-bold mt-1">{users.length}</p>
+                        </div>
+                        <div
+                            onClick={() => setFilter("reseller")}
+                            className={`cursor-pointer bg-gradient-to-br from-green-700 to-green-900 p-5 rounded-xl shadow-lg ${filter === "reseller" ? "ring-2 ring-green-400" : ""}`}
+                        >
+                            <h4 className="text-sm text-gray-300">Total Resellers</h4>
+                            <p className="text-3xl font-bold mt-1">{users.filter(u => Number(u.wallet) >= 100).length}</p>
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <div className="overflow-x-auto bg-[#0F172A] rounded-2xl shadow-xl">
+                        <table className="min-w-full text-sm">
+                            <thead>
+                            <tr className="text-gray-400 text-left border-b border-gray-600">
+                                <th className="py-4 px-4">#</th>
+                                <th className="py-4 px-4">Username</th>
+                                <th className="py-4 px-4">Name</th>
+                                <th className="py-4 px-4">Phone</th>
+                                <th className="py-4 px-4">Wallet</th>
+                                <th className="py-4 px-4">Verified</th>
+                                <th className="py-4 px-4">Joined</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {paginatedUsers.map((user, index) => (
+                                <tr
+                                    key={user.id}
+                                    onClick={() => navigate(`/userdetails/${user.id}`)}
+                                    className="border-b border-gray-700 hover:bg-[#162338] cursor-pointer"
                                 >
-                                    Previous
-                                </button>
-                                <span className="text-sm">
-                                    Page {pagination?.current_page} of {pagination?.last_page}
-                                </span>
-                                <button
-                                    onClick={handleNext}
-                                    disabled={!pagination?.next_page_url}
-                                    className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </>
-                    )}
+                                    <td className="py-4 px-4">{(currentPage - 1) * USERS_PER_PAGE + index + 1}</td>
+                                    <td className="py-4 px-4">{user.username}</td>
+                                    <td className="py-4 px-4">{user.name}</td>
+                                    <td className="py-4 px-4">{user.phone}</td>
+                                    <td className="py-4 px-4">₦{user.wallet}</td>
+                                    <td className="py-4 px-4">
+                                        {user.is_verify === "true" ? (
+                                            <span className="text-green-400">Yes</span>
+                                        ) : (
+                                            <span className="text-yellow-400">No</span>
+                                        )}
+                                    </td>
+                                    <td className="py-4 px-4">{new Date(user.createdAt).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex justify-between items-center mt-6">
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <span className="text-gray-300">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default AllUsers;

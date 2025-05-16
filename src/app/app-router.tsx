@@ -10,6 +10,8 @@ import PurchaseSummary from "@/app/routes/dashboard/AllPurchase.tsx";
 import PendingPurchases from "@/app/routes/dashboard/PendingPurchases.tsx";
 import TransactionDetails from "@/app/routes/dashboard/TransactionDetails.tsx";
 import SearchTransaction from "@/app/routes/dashboard/SearchTransaction.tsx";
+import ValidateMcd from "@/app/routes/dashboard/Validate-Mcd.tsx";
+import AllUsers from "@/app/routes/dashboard/AllUsersPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -72,11 +74,30 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
       ),
 
-  }, {
+  },
+    {
     path: "/search-tran",
       Component: () => (
           <ProtectedRoute>
             <SearchTransaction />
+          </ProtectedRoute>
+      ),
+
+  },
+    {
+    path: "/recheck",
+      Component: () => (
+          <ProtectedRoute>
+            <ValidateMcd />
+          </ProtectedRoute>
+      ),
+
+  },
+    {
+    path: "/allusers",
+      Component: () => (
+          <ProtectedRoute>
+            <AllUsers />
           </ProtectedRoute>
       ),
 
