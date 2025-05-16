@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar.tsx";
 import DashboardHeader from "@/components/DashboardHeader.tsx";
-import { getAuthToken } from "@/utils/auth.tsx";
 import { toast } from "react-toastify";
 
 // Define type for bill object
