@@ -13,6 +13,7 @@ import SearchTransaction from "@/app/routes/dashboard/SearchTransaction.tsx";
 import ValidateMcd from "@/app/routes/dashboard/Validate-Mcd.tsx";
 import AllUsers from "@/app/routes/dashboard/AllUsersPage.tsx";
 import ManageUserPage from "@/app/routes/dashboard/UserDetailsPage.tsx";
+import AllProductsPage from "@/app/routes/dashboard/AllProducts.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -99,6 +100,15 @@ export const router = createBrowserRouter([
       Component: () => (
           <ProtectedRoute>
             <AllUsers />
+          </ProtectedRoute>
+      ),
+
+  },
+    {
+    path: "/allproducts",
+      Component: () => (
+          <ProtectedRoute>
+            <AllProductsPage />
           </ProtectedRoute>
       ),
 

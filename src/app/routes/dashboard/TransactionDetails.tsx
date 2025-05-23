@@ -3,6 +3,9 @@ import { useParams } from "react-router";
 import { getAuthToken } from "@/utils/auth.tsx";
 import Sidebar from "@/components/Sidebar.tsx";
 import DashboardHeader from "@/components/DashboardHeader.tsx";
+import {
+    RotateCcw, CheckCircle, XCircle, Repeat, ShieldCheck
+} from "lucide-react";
 
 type Bill = {
     id: string;
@@ -37,7 +40,7 @@ const TransactionDetails = () => {
                 setBill(data.bill);
                 setLoading(false);
             })
-            .catch((_err) => {
+            .catch(() => {
                 console.error("Error loading bill");
                 setLoading(false);
             });
@@ -53,7 +56,7 @@ const TransactionDetails = () => {
         })
             .then((res) => res.json())
             .then((data) => alert(`${action} completed: ${JSON.stringify(data)}`))
-            .catch((_err) => alert(`Error performing ${action}`));
+            .catch(() => alert(`Error performing ${action}`));
     };
 
     if (loading) return <p className="text-center text-white mt-10">Loading...</p>;
@@ -71,67 +74,66 @@ const TransactionDetails = () => {
             <div className="flex-1 flex flex-col overflow-hidden">
                 <DashboardHeader setSidebarOpen={setSidebarOpen} />
 
-                <div className="max-w-4xl mx-auto mt-10 p-8 bg-[#0F172A] shadow-xl rounded-2xl">
-                    <h2 className="text-3xl font-bold mb-6 border-b border-slate-600 pb-2">Transaction Details</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                        <div className="space-y-2">
-                            <p><span className="font-semibold text-gray-300">ID:</span> {bill.id}</p>
-                            <p><span className="font-semibold text-gray-300">Username:</span> {bill.username}</p>
-                            <p><span className="font-semibold text-gray-300">Plan:</span> {bill.plan || "N/A"}</p>
-                            <p><span className="font-semibold text-gray-300">Amount:</span> ₦{bill.amount}</p>
-                        </div>
-                        <div className="space-y-2">
-                            <p><span className="font-semibold text-gray-300">Phone:</span> {bill.phone}</p>
-                            <p><span className="font-semibold text-gray-300">Ref ID:</span> {bill.refid}</p>
-                            <p><span className="font-semibold text-gray-300">Date:</span> {new Date(bill.date).toLocaleString()}</p>
-                            <p>
-                                <span className="font-semibold text-gray-300">Status:</span>{" "}
-                                <span className={`font-semibold ${bill.result === "0" ? "text-yellow-400" : "text-green-400"}`}>
-                                    {bill.result === "0" ? "Pending" : "Completed"}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
+                <main className="flex-1 overflow-y-auto p-6 sm:p-10">
+                    <div className="max-w-4xl mx-auto bg-[#0F172A] p-8 rounded-2xl border border-slate-700 shadow-lg">
+                        <h1 className="text-2xl sm:text-3xl font-bold mb-6">Transaction Details</h1>
 
-                    <div className="mt-8">
-                        <h3 className="text-xl font-semibold mb-4">Actions</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                            <button
-                                onClick={() => handleAction("reverse-money")}
-                                className="bg-red-600 hover:bg-red-700 py-2 px-4 rounded-lg"
-                            >
-                                Reverse Money
-                            </button>
-                            <button
-                                onClick={() => handleAction("mark-success")}
-                                className="bg-green-600 hover:bg-green-700 py-2 px-4 rounded-lg"
-                            >
-                                Mark as Success
-                            </button>
-                            <button
-                                onClick={() => handleAction("mark-reversed")}
-                                className="bg-yellow-600 hover:bg-yellow-700 py-2 px-4 rounded-lg"
-                            >
-                                Mark as Reversed
-                            </button>
-                            <button
-                                onClick={() => handleAction("reprocess")}
-                                className="bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-lg"
-                            >
-                                Reprocess
-                            </button>
-                            <button
-                                onClick={() => handleAction("revalidate")}
-                                className="bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg col-span-2 md:col-span-1"
-                            >
-                                Revalidate
-                            </button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-200">
+                            <Detail label="Transaction ID" value={bill.id} />
+                            <Detail label="Username" value={bill.username} />
+                            <Detail label="Plan" value={bill.plan || "N/A"} />
+                            <Detail label="Amount" value={`₦${bill.amount.toLocaleString()}`} />
+                            <Detail label="Phone" value={bill.phone} />
+                            <Detail label="Reference ID" value={bill.refid} />
+                            <Detail label="Date" value={new Date(bill.date).toLocaleString()} />
+                            <Detail
+                                label="Status"
+                                value={bill.result === "0" ? "Pending" : "Completed"}
+                                color={bill.result === "0" ? "text-yellow-400" : "text-green-400"}
+                            />
+                        </div>
+
+                        <div className="mt-10">
+                            <h2 className="text-xl font-semibold mb-4">Actions</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <ActionButton label="Reverse Money" onClick={() => handleAction("reverse-money")} color="bg-red-600" icon={<XCircle />} />
+                                <ActionButton label="Mark as Success" onClick={() => handleAction("mark-success")} color="bg-green-600" icon={<CheckCircle />} />
+                                <ActionButton label="Mark as Reversed" onClick={() => handleAction("mark-reversed")} color="bg-yellow-600" icon={<RotateCcw />} />
+                                <ActionButton label="Reprocess" onClick={() => handleAction("reprocess")} color="bg-blue-600" icon={<Repeat />} />
+                                <ActionButton label="Revalidate" onClick={() => handleAction("revalidate")} color="bg-purple-600" icon={<ShieldCheck />} />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </main>
             </div>
         </div>
     );
 };
+
+const Detail = ({ label, value, color }: { label: string; value: string | number; color?: string }) => (
+    <p>
+        <span className="block text-slate-400 font-medium">{label}</span>
+        <span className={`text-base font-semibold ${color ?? "text-white"}`}>{value}</span>
+    </p>
+);
+
+const ActionButton = ({
+                          label,
+                          onClick,
+                          color,
+                          icon
+                      }: {
+    label: string;
+    onClick: () => void;
+    color: string;
+    icon: JSX.Element;
+}) => (
+    <button
+        onClick={onClick}
+        className={`${color} hover:opacity-90 transition-opacity text-white py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 shadow-md`}
+    >
+        {icon} {label}
+    </button>
+);
 
 export default TransactionDetails;
