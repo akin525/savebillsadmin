@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import { getAuthToken } from "@/utils/auth";
 import Sidebar from "@/components/Sidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-import { UserCog, ShieldCheck, RefreshCw, CreditCard, Mail, Ban } from "lucide-react";
+import { UserCog,  RefreshCw} from "lucide-react";
 import UserManagement from "@/components/ui/UserManagement.tsx";
 
 interface UserProfile {
@@ -46,39 +46,41 @@ export default function ManageUserPage() {
     const [allbill, setAllbill] = useState([]);
     const [alldeposit, setAlldeposit] = useState([]);
 
+    const fetchUserData = async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+            const token = getAuthToken();
+            const res = await fetch(`${baseUrl}users`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username: id }),
+            });
+
+            if (!res.ok) throw new Error("Failed to fetch user details");
+            const result = await res.json();
+
+            setUser(result.userdetail);
+            setAllbill(result.allbill);
+            setAlldeposit(result.alldeposit);
+
+            setUserDeposit(Number(result.userdeposit ?? 0));
+            setUserBill(Number(result.userbill ?? 0));
+            setUserCharge(Number(result.usercharge ?? 0));
+            setSafelock(Number(result.safelock ?? 0));
+        } catch (err: any) {
+            setError(err.message || "Something went wrong");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const token = getAuthToken();
-                const res = await fetch(`${baseUrl}users`, {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ username: id }),
-                });
-
-                if (!res.ok) throw new Error("Failed to fetch user details");
-                const result = await res.json();
-
-                setUser(result.userdetail);
-                setAllbill(result.allbill);
-                setAlldeposit(result.alldeposit);
-
-                // Parse and ensure numbers
-                setUserDeposit(Number(result.userdeposit ?? 0));
-                setUserBill(Number(result.userbill ?? 0));
-                setUserCharge(Number(result.usercharge ?? 0));
-                setSafelock(Number(result.safelock ?? 0));
-            } catch (err: any) {
-                setError(err.message || "Something went wrong");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
+        fetchUserData();
     }, [id]);
 
     return (
@@ -98,6 +100,13 @@ export default function ManageUserPage() {
                     <h1 className="text-4xl font-extrabold tracking-tight flex items-center gap-3">
                         <UserCog size={36} className="text-cyan-400" />
                         Manage User
+                        <button
+                            onClick={fetchUserData}
+                            className="ml-auto flex items-center gap-2 px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white text-sm rounded-lg shadow transition"
+                        >
+                            <RefreshCw size={16} />
+                            Refresh
+                        </button>
                     </h1>
 
                     {loading ? (
@@ -105,8 +114,7 @@ export default function ManageUserPage() {
                     ) : error ? (
                         <p className="text-red-500 text-lg font-semibold">{error}</p>
                     ) : user ? (
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-                            {/* User Info */}
+                        <div className="grid grid-cols-1  gap-10">
                             <section className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur rounded-3xl p-8 shadow-2xl border border-gray-700 xl:col-span-2 hover:shadow-cyan-500/20 transition">
                                 <header className="flex items-center gap-4 mb-8">
                                     <UserCog size={32} className="text-cyan-400" />
@@ -114,7 +122,6 @@ export default function ManageUserPage() {
                                 </header>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-base">
-                                    {/* User Info Grid */}
                                     <UserInfoRow label="Full Name" value={user.name} />
                                     <UserInfoRow label="Username" value={`@${user.username}`} />
                                     <UserInfoRow label="Email" value={user.email} />
@@ -125,15 +132,12 @@ export default function ManageUserPage() {
                                     <UserInfoRow label="Wallet Balance" value={`₦${user.wallet}`} />
                                     <UserInfoRow label="Cashback" value={`₦${user.cashback}`} />
                                     <UserInfoRow label="Reward Points" value={`${user.reward}`} />
-
                                     <UserInfoRow label="Bank 1" value={user.bank} />
                                     <UserInfoRow label="Account Name 1" value={user.account_name} />
                                     <UserInfoRow label="Account Number 1" value={user.account_number} />
-
                                     <UserInfoRow label="Bank 2" value={user.bank1} />
                                     <UserInfoRow label="Account Name 2" value={user.account_name1} />
                                     <UserInfoRow label="Account Number 2" value={user.account_number1} />
-
                                     <UserInfoRow label="API Key" value={user.apikey} />
 
                                     <div className="flex items-center gap-3">
@@ -153,7 +157,6 @@ export default function ManageUserPage() {
                                     <UserInfoRow label="Last Updated" value={new Date(user.updatedAt).toLocaleDateString()} />
                                 </div>
 
-                                {/* Financial Summary */}
                                 <section className="mt-10 bg-gray-800/80 rounded-2xl p-6 border border-gray-700">
                                     <h3 className="text-xl font-semibold mb-5 text-cyan-400">Financial Summary</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -165,22 +168,21 @@ export default function ManageUserPage() {
                                 </section>
                             </section>
 
-                            {/* Management Actions */}
-                            <section className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur rounded-3xl p-8 shadow-2xl border border-gray-700 flex flex-col gap-6 hover:shadow-cyan-500/20 transition">
-                                <header className="flex items-center gap-4 mb-6">
-                                    <ShieldCheck size={32} className="text-cyan-400" />
-                                    <h2 className="text-3xl font-bold">Admin Actions</h2>
-                                </header>
+                            {/*<section className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur rounded-3xl p-8 shadow-2xl border border-gray-700 flex flex-col gap-6 hover:shadow-cyan-500/20 transition">*/}
+                            {/*    <header className="flex items-center gap-4 mb-6">*/}
+                            {/*        <ShieldCheck size={32} className="text-cyan-400" />*/}
+                            {/*        <h2 className="text-3xl font-bold">Admin Actions</h2>*/}
+                            {/*    </header>*/}
 
-                                <div className="flex flex-col gap-4">
-                                    <ActionButton icon={<CreditCard size={24} />} text="Credit User Balance" color="bg-green-600" />
-                                    <ActionButton icon={<CreditCard size={24} />} text="Debit User Balance" color="bg-yellow-600" />
-                                    <ActionButton icon={<RefreshCw size={24} />} text="Generate Account Number" color="bg-blue-600" />
-                                    <ActionButton icon={<Mail size={24} />} text="Send Email" color="bg-indigo-600" />
-                                    <ActionButton icon={<ShieldCheck size={24} />} text="Update User Details" color="bg-gray-600" />
-                                    <ActionButton icon={<Ban size={24} />} text="Change Status" color="bg-red-600" />
-                                </div>
-                            </section>
+                            {/*    <div className="flex flex-col gap-4">*/}
+                            {/*        <ActionButton icon={<CreditCard size={24} />} text="Credit User Balance" color="bg-green-600" />*/}
+                            {/*        <ActionButton icon={<CreditCard size={24} />} text="Debit User Balance" color="bg-yellow-600" />*/}
+                            {/*        <ActionButton icon={<RefreshCw size={24} />} text="Generate Account Number" color="bg-blue-600" />*/}
+                            {/*        <ActionButton icon={<Mail size={24} />} text="Send Email" color="bg-indigo-600" />*/}
+                            {/*        <ActionButton icon={<ShieldCheck size={24} />} text="Update User Details" color="bg-gray-600" />*/}
+                            {/*        <ActionButton icon={<Ban size={24} />} text="Change Status" color="bg-red-600" />*/}
+                            {/*    </div>*/}
+                            {/*</section>*/}
                         </div>
                     ) : (
                         <p className="text-gray-400 text-lg">User not found.</p>
@@ -202,14 +204,14 @@ function UserInfoRow({ label, value }: { label: string; value: string }) {
     );
 }
 
-function ActionButton({ icon, text, color }: { icon: React.ReactNode; text: string; color: string }) {
-    return (
-        <button
-            className={`${color} flex items-center gap-4 justify-center rounded-2xl px-6 py-4 font-semibold transition duration-200 hover:scale-105 active:scale-95 shadow-lg`}
-            type="button"
-        >
-            <span className="text-white">{icon}</span>
-            <span className="text-lg">{text}</span>
-        </button>
-    );
-}
+// function ActionButton({ icon, text, color }: { icon: React.ReactNode; text: string; color: string }) {
+//     return (
+//         <button
+//             className={`${color} flex items-center gap-4 justify-center rounded-2xl px-6 py-4 font-semibold transition duration-200 hover:scale-105 active:scale-95 shadow-lg`}
+//             type="button"
+//         >
+//             <span className="text-white">{icon}</span>
+//             <span className="text-lg">{text}</span>
+//         </button>
+//     );
+// }

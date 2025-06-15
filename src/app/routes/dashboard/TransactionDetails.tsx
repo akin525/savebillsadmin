@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import {JSX, useEffect, useState} from "react";
 import { useParams } from "react-router";
+import axios from "axios";
+import Swal from "sweetalert2";
 import { getAuthToken } from "@/utils/auth.tsx";
 import Sidebar from "@/components/Sidebar.tsx";
 import DashboardHeader from "@/components/DashboardHeader.tsx";
 import {
-    RotateCcw, CheckCircle, XCircle, Repeat, ShieldCheck
+    RotateCcw,
+    CheckCircle,
+    XCircle,
+    Repeat,
+    ShieldCheck,
 } from "lucide-react";
 
 type Bill = {
@@ -18,13 +24,17 @@ type Bill = {
     result: string;
 };
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseURL = `${baseUrl}reverseid`;
+const baseURL1 = `${baseUrl}reverse`;
+const baseURL3 = `${baseUrl}approve`;
+
 const TransactionDetails = () => {
     const { id } = useParams<{ id: string }>();
     const [bill, setBill] = useState<Bill | null>(null);
     const [loading, setLoading] = useState(true);
-    const token = getAuthToken();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const token = getAuthToken();
 
     useEffect(() => {
         fetch(`${baseUrl}findpurchase`, {
@@ -40,23 +50,58 @@ const TransactionDetails = () => {
                 setBill(data.bill);
                 setLoading(false);
             })
-            .catch(() => {
-                console.error("Error loading bill");
+            .catch((err) => {
+                console.error("Error loading bill", err);
                 setLoading(false);
             });
     }, [id]);
 
-    const handleAction = (action: string) => {
-        fetch(`${baseUrl}pending/${id}/${action}`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => alert(`${action} completed: ${JSON.stringify(data)}`))
-            .catch(() => alert(`Error performing ${action}`));
+    const handleAction = async (action: string) => {
+        if (!bill) return;
+
+        setLoading(true);
+        let endpoint = "";
+        let payload: Record<string, any> = {};
+
+        if (action === "reverse-money") {
+            endpoint = baseURL;
+            payload = { username: bill.username, refid: bill.refid };
+        } else if (action === "mark-success") {
+            endpoint = baseURL3;
+            payload = { username: bill.username, id: bill.id };
+        } else if (action === "mark-reversed") {
+            endpoint = baseURL1;
+            payload = { username: bill.username, refid: bill.refid };
+        } else {
+            endpoint = `${baseUrl}pending/${bill.id}/${action}`;
+        }
+
+        try {
+            const response = await axios.post(endpoint, payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const { success, message } = response.data;
+            setLoading(false);
+
+            Swal.fire({
+                title: "Response",
+                text: message || "Done",
+                icon: success == true ? "success" : "error",
+                confirmButtonText: "OK",
+            }).then(() => window.location.reload());
+        } catch (error: any) {
+            setLoading(false);
+            Swal.fire({
+                title: "Error",
+                text: error.message || "Something went wrong",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
+        }
     };
 
     if (loading) return <p className="text-center text-white mt-10">Loading...</p>;
@@ -121,7 +166,7 @@ const ActionButton = ({
                           label,
                           onClick,
                           color,
-                          icon
+                          icon,
                       }: {
     label: string;
     onClick: () => void;
