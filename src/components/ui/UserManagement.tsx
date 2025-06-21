@@ -174,7 +174,7 @@ const UserManagement = ({
                             setLoading(true);
                             try {
                                 const { data } = await postWithAuth(CREDIT_URL, {
-                                    username: userdetail.username,
+                                    username: userdetail?.username,
                                     amount: creditAmount,
                                     refid: creditRefId,
                                 });
@@ -225,7 +225,7 @@ const UserManagement = ({
                             setLoading(true);
                             try {
                                 const { data } = await postWithAuth(DEBIT_URL, {
-                                    username: userdetail.username,
+                                    username: userdetail?.username,
                                     amount: debitAmount,
                                     refid: debitRefId,
                                 });
