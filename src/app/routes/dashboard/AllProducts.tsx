@@ -155,6 +155,7 @@ const AllProductsPage = () => {
                                 <p className="text-sm text-gray-300">
                                     Network: {product.network.toUpperCase()}
                                 </p>
+                                <p className="text-sm text-gray-300">Plan ID: {product.plan_id}</p>
                                 <p className="text-sm text-gray-300">Code: {product.code}</p>
                                 <p className="text-sm text-green-400">Amount: ₦{product.amount}</p>
                                 <p className="text-sm text-gray-400">Retail: ₦{product.ramount}</p>
