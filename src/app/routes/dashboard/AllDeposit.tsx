@@ -56,7 +56,6 @@ const DepositSummary = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedTimeframe, setSelectedTimeframe] = useState("all");
     const itemsPerPage = 10;
     const token = getAuthToken();
 
@@ -328,7 +327,7 @@ const DepositSummary = () => {
                                     </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-700/50">
-                                    {paginatedDeposits.map((dep, index) => (
+                                    {paginatedDeposits.map((dep) => (
                                         <tr
                                             key={dep.id}
                                             className="hover:bg-gray-800/30 transition-colors duration-200"
