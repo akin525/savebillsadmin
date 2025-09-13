@@ -14,6 +14,7 @@ import ValidateMcd from "@/app/routes/dashboard/Validate-Mcd.tsx";
 import AllUsers from "@/app/routes/dashboard/AllUsersPage.tsx";
 import ManageUserPage from "@/app/routes/dashboard/UserDetailsPage.tsx";
 import AllProductsPage from "@/app/routes/dashboard/AllProducts.tsx";
+import Withdraw from "@/app/routes/dashboard/Withdraw.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -109,6 +110,15 @@ export const router = createBrowserRouter([
       Component: () => (
           <ProtectedRoute>
             <AllProductsPage />
+          </ProtectedRoute>
+      ),
+
+  },
+    {
+    path: "/withdraw",
+      Component: () => (
+          <ProtectedRoute>
+            <Withdraw />
           </ProtectedRoute>
       ),
 
