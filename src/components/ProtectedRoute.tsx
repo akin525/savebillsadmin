@@ -93,7 +93,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                     todaypurchase: userPayload.todaypurchase,
                     todaydeposit: userPayload.todaydeposit,
                     noti: userPayload.noti,
-                    mcdcom: userPayload.mcdcom,
                     wallet: userPayload.wallet,
                     totalbill: userPayload.totalbill,
                     totaldeposit: userPayload.totaldeposit,

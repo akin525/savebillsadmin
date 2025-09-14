@@ -5,31 +5,18 @@ import DashboardHeader from "@/components/DashboardHeader.tsx";
 import { getAuthToken } from "@/utils/auth.tsx";
 import {
     Clock,
-    User,
-    Phone,
     DollarSign,
     Calendar,
     Search,
-    Filter,
     RefreshCw,
     AlertTriangle,
-    Eye,
-    MoreVertical,
-    ArrowRight,
-    Activity,
-    TrendingUp,
     FileText,
     CheckCircle2,
-    XCircle,
-    Timer,
     Smartphone,
-    CreditCard,
     Hash,
     ChevronRight,
     Package,
     Users,
-    Zap,
-    AlertCircle
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -45,6 +32,9 @@ interface PendingPurchase {
     createdAt: string;
     updatedAt: string;
 }
+
+// Define priority type
+type PriorityLevel = 'high' | 'medium' | 'low';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -143,7 +133,7 @@ const PendingPurchases = () => {
         return `${diffInDays}d ago`;
     };
 
-    const getPriorityLevel = (dateString: string) => {
+    const getPriorityLevel = (dateString: string): PriorityLevel => {
         const now = new Date();
         const date = new Date(dateString);
         const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
@@ -370,10 +360,10 @@ const StatsCard = ({
     icon: any;
     label: string;
     value: string;
-    color: string;
+    color: 'orange' | 'red' | 'yellow' | 'blue';
     subtitle: string;
 }) => {
-    const colorClasses = {
+    const colorClasses: Record<'orange' | 'red' | 'yellow' | 'blue', string> = {
         orange: 'from-orange-500/20 to-orange-600/20 border-orange-500/30 text-orange-400',
         red: 'from-red-500/20 to-red-600/20 border-red-500/30 text-red-400',
         yellow: 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30 text-yellow-400',
@@ -381,9 +371,9 @@ const StatsCard = ({
     };
 
     return (
-        <div className={`bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses]} backdrop-blur-sm rounded-2xl border p-6 hover:scale-105 transition-all duration-200`}>
+        <div className={`bg-gradient-to-br ${colorClasses[color]} backdrop-blur-sm rounded-2xl border p-6 hover:scale-105 transition-all duration-200`}>
             <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses]} rounded-xl flex items-center justify-center`}>
+                <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[color]} rounded-xl flex items-center justify-center`}>
                     <Icon className="w-6 h-6" />
                 </div>
             </div>
@@ -409,10 +399,10 @@ const PurchaseCard = ({
     formatCurrency: (amount: string) => string;
     formatDate: (date: string) => string;
     getTimeAgo: (date: string) => string;
-    getPriorityLevel: (date: string) => string;
+    getPriorityLevel: (date: string) => PriorityLevel;
 }) => {
     const priority = getPriorityLevel(purchase.date);
-    const priorityColors = {
+    const priorityColors: Record<PriorityLevel, string> = {
         high: 'border-red-500/50 bg-red-500/10',
         medium: 'border-yellow-500/50 bg-yellow-500/10',
         low: 'border-gray-600/50 bg-gray-800/30'
@@ -501,7 +491,6 @@ const PurchaseListItem = ({
                               purchase,
                               onClick,
                               formatCurrency,
-                              formatDate,
                               getTimeAgo,
                               getPriorityLevel
                           }: {
@@ -510,7 +499,7 @@ const PurchaseListItem = ({
     formatCurrency: (amount: string) => string;
     formatDate: (date: string) => string;
     getTimeAgo: (date: string) => string;
-    getPriorityLevel: (date: string) => string;
+    getPriorityLevel: (date: string) => PriorityLevel;
 }) => {
     const priority = getPriorityLevel(purchase.date);
 

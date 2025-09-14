@@ -5,7 +5,6 @@ import DashboardHeader from "@/components/DashboardHeader.tsx";
 import { getAuthToken } from "@/utils/auth.tsx";
 import {
     Search,
-    Filter,
     Download,
     Eye,
     Calendar,
@@ -19,7 +18,6 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    MoreVertical,
     RefreshCw,
     FileText,
     Activity
@@ -62,7 +60,6 @@ const PurchaseSummary = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedServerRes, setSelectedServerRes] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [dateRange, setDateRange] = useState<string>("all");
     const itemsPerPage = 10;
     const token = getAuthToken();
 
