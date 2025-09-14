@@ -73,15 +73,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                         "Content-Type": "application/json",
                     },
                 });
-                // const McdBalance = await fetch("https://reseller.mcd.5starcompany.com.ng/api/v1/my-balance", {
-                //     headers: {
-                //         Authorization: `Bearer ChBfBAKZXxBhVDM6Vta54LAjNHcpNSzAhUcgmxr274wUetwtgGbbOJ1Uv0HoQckSLK8o9VIs1YlUUzP6ONe7rpXY2W7hg2YlYxcO7fJOP8uUPe3SG8hVKUwbrkkgmX4piw2yipJbY6R1tK5MyIFZYn`,
-                //         "Content-Type": "application/json",
-                //     },
-                // });
+                const McdBalance = await fetch("https://reseller.mcd.5starcompany.com.ng/api/v1/my-balance", {
+                    headers: {
+                        Authorization: `Bearer ChBfBAKZXxBhVDM6Vta54LAjNHcpNSzAhUcgmxr274wUetwtgGbbOJ1Uv0HoQckSLK8o9VIs1YlUUzP6ONe7rpXY2W7hg2YlYxcO7fJOP8uUPe3SG8hVKUwbrkkgmX4piw2yipJbY6R1tK5MyIFZYn`,
+                        "Content-Type": "application/json",
+                    },
+                });
 
                 const paylonyData = await paylonyRes.json();
-                // const mcdDatat=await McdBalance.json();
+                const mcdDatat=await McdBalance.json();
 
                 setAdmin({
                     ...userPayload,
@@ -93,7 +93,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                     todaypurchase: userPayload.todaypurchase,
                     todaydeposit: userPayload.todaydeposit,
                     noti: userPayload.noti,
-                    mcdbalance: userPayload.mcdbalance,
                     mcdcom: userPayload.mcdcom,
                     wallet: userPayload.wallet,
                     totalbill: userPayload.totalbill,
@@ -104,6 +103,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                     id: userPayload.id,
                     username: userPayload.username,
                     email: userPayload.email,
+                    mcdbalance:mcdDatat.data.wallet ?? 0,
+                    mcdcom: mcdDatat.data.commission ?? 0,
+
                 });
 
                 setIsValid(true);

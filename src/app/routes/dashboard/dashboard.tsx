@@ -79,6 +79,8 @@ export default function AdminDashboard() {
     ];
 
     const secondaryStats = [
+        { icon: <Wallet />, label: "MCD Balance", value: admin?.mcdbalance ?? 0, color: "purple" },
+        { icon: <Wallet />, label: "MCD Commission", value: admin?.mcdcom ?? 0, color: "purple" },
         { icon: <Wallet />, label: "Paylony Balance", value: admin?.paylonybalance ?? 0, color: "blue" },
         { icon: <Wallet />, label: "Paylony Pending", value: admin?.paylonypendingbalance ?? 0, color: "yellow" },
         { icon: <HandCoins />, label: "Total Deposit", value: admin?.totaldeposit ?? 0, color: "green" },
